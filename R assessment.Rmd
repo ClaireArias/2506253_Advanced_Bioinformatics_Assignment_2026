@@ -1,0 +1,282 @@
+---
+title: "Advanced Bioinformatics 2026 Assessment"
+author: 'Student ID: 2506253'
+output: html_document
+---
+# Task 3.1
+Using the ":" operator to generate all integers between 5 to 55 and the "sum ()" function to add all the integers together. 
+
+```{r}
+sum (5:55)
+```
+## Task 3.2
+sumfun is defined as a function with n as an singular input paramter. This function uses ":"  to generate  of all integers from 5 to n, with the sum() command adding all the numbers together. This function is then performed when n=10,20 and 100.
+
+```{r}
+sumfun <- function(n) {
+   total <- sum(5:n)
+   return (total)} 
+
+sumfun(10) 
+sumfun(20) 
+sumfun(100)
+```
+## Task 3.3
+This R script creates a function which generates the first  numbers of the Fibonacci sequence in this case n=12, so it calculates the first 12 entries. It also indicates that each fibonacci number is the sum of the two previous numbers starting with 1,1. Numeric vectors were manually inserted for the first two entries, however the loop for(i in 3:n) was used to calculate the fibonacci numbers from the 3rd entry onwards. 
+
+```{r}
+# Create a function to generate the first n entries of the fibonacci sequence
+fibonacci_sequence <- function(n) {
+# Create a numeric vector 
+  fib_num <- numeric (n) 
+  # Manually insert the first two entries of the fibonacci sequence. 
+  fib_num [1] <- 1  # Entry 1 = 1
+  fib_num [2] <- 1  # Entry 2 = 1
+
+# Begin the loop from the 3rd entry 
+  for (i in 3:n) {
+  fib_num[i] <- fib_num[i-1] + fib_num[i-2] 
+}
+return (fib_num) 
+}
+#  Calculate and generate the first 12 entries of the fibonacci sequence.
+fibonacci_sequence(12)
+
+
+```
+## Task 3.4
+
+The mtcars dataset bundled with R was used to create a boxplot of miles per gallon as a function of the number of gears using ggplot2. The aes () function highlights the variables used in the plot, in this case gear is converted to a factor using as. factor() to ensure that it is converted into a categorical variable, this ensures that a separate boxplot is drawn for each gear (3,4,or 5). The additional fill = as.factor (gear) aesthetic inside geom_boxplot () is used to colour each box by the number of gears. Lastly, the labs() function was used to appropriately provide a title and label the x axis, y axis and the fill.
+ 
+```{r}
+#Load the ggplot2 library for plotting
+library(ggplot2)
+#Generating a box plot 
+ggplot(data = mtcars, aes(x= as.factor(gear), y= mpg)) + geom_boxplot(aes(fill= as.factor(gear) )) + labs(title = "Miles per gallon as a function of the number of gears",
+       x = "Number of gears",
+       y = "Miles per gallon (mpg)",
+       fill = "Number of gears")
+```
+## Task 3.5
+
+A simple linear model is fitted using the lm() function on the cars dataset, with breaking distance as the dependent variable (y) and speed as the independent variable (x), following the simple linear relationship typically expressed as y~x. The summary() command is then used on the fitted lm model to extract detailed parameter values such as fitted slope (3.9324), intercept (-17.5791 ), and their standard errors (6.7584,  0.4155) . ?cars was used to access the R help documentation of the cars dataset showing that speed was measured in miles per hour (mph) and distance was measured in feet (ft).
+
+```{r}
+y <- cars$dist; x<-cars$speed;
+#Fit the linear model using lm
+model <- lm(formula = "y~x")
+#Parameter values of fitted model
+summary(model)
+# View cars dataset R documentation to check variable units
+?cars
+```
+## Task 3.6
+
+The ggplot2 library was loaded into R to plot the data points derived from Task 3.5. ggplot() was used to specify the expressions needed to plot from the cars dataset in this case speed in the x axis and distance in the y axis. The geompoint() function was used to visualise the speed and distance data points through a scatter plot. Following this, the linear fit was plotted using geom_smooth (method="lm",formula="y~x") which visualises the relationship between the x and y variables. Lastly, the labs() function was used to appropriately provide a title and label the x and y axis
+```{r}
+# Load the ggplot2 library for plotting
+library(ggplot2) 
+# Create a scatter plot showing the relationship between speed and distance and add the linear fit.
+ggplot(cars,aes(x= speed,y= dist)) + geom_point() +	geom_smooth(method="lm",formula="y~x") +  
+labs(title = "Linear relationship between breaking distance (ft) and speed (mph)",
+       x = "Speed (mph)",
+       y = "Distance (ft)")
+```
+
+## Task 3.7
+
+The regression model was fitted using lm() to estimate braking distance as a function of both speed and speed squared. This is because total stopping distance = reaction and breaking distance, Noteably, reaction distance is proportional to speed, and in this case it is assumed that speed squared is proportional to the breaking distance. Therefore the model used lm(formula = dist ~ speed_mph + speed_mph2) to represent this.
+
+```{r}
+# Create variables from the cars dataset 
+# Dist is the dependent variable (y) breaking distance
+# speed_mh is an independent variable (x) reaction distance
+# speed_mph2 is  speed squared, which is used to model breaking distance (x^2)
+
+dist <- cars$dist 
+speed_mph <- cars$speed 
+speed_mph2 <-cars$speed^2
+
+#Fit the linear model with speed and the quadratic speed squared term, given the assumption that breaking distance is proportional to speed squared
+reaction_model <- lm(formula = dist ~ speed_mph + speed_mph2)
+reaction_model
+
+```
+Through extracting the coefficient from the fitted reaction_model, the drivers reaction time was able to be estimated. However, the speed was taken at mph and the reaction time is required to be expressed in seconds therefore the coefficient was converted into seconds by calculating the difference between miles per hour and ft per second , which in this case was 1.4666. This showed that the reaction time was approximately 0.62 seconds. Typically breaking reactions range from 0.7-1.5 seconds so 0.62 seconds is a reasonable time and a plausible result suggesting that the driver has a relatively fast braking response.
+
+```{r}
+# Extract the coefficient for speed and convert it to an estimated reaction time.
+# Convert the units as reaction time is in seconds rather then hours. 
+# Speed needs to changes from mph to ft per second --> 1mph =  5280 ft / 3600 sec = 1.4666 
+reaction_time_mph  <- coef(reaction_model)["speed_mph"]
+reaction_time_fps <-reaction_time_mph/ 1.4666
+reaction_time_fps
+
+```
+To visualise the relationship between speed and stopping distance, ggplot() was used and a scatter plot of the data points was created using geom_point(), where speed was plotted against distance. Geom_smooth() was used to add the fitted line with the lm method including both speed (x) and speed squared (I(x^2)).
+
+```{r}
+# Load ggplot to enable plotting
+library (ggplot2)
+
+#Plot a graph of the fitted relationship between breaking distance and speed.
+ggplot(cars, aes(x = speed, y = dist)) + geom_point() + 
+geom_smooth(method = "lm", formula = y ~ x + I(x^2)) +
+labs(title = "Fitted relationship between braking distance and speed",
+    x = "Speed (mph)",
+    y = "Distance (ft)")
+```
+
+#Task 3.8 
+
+The count data and sample description files are read into R. For the counts data, row.names = 1 was used to set the first column as row names, and header = TRUE was used to treat the first row as column names. As the sample description file is tab-separated, sep = "\t" was used alongside header = TRUE to read it correctly.
+```{r}
+#Setting the working directory for where the files are stored on my computer.
+setwd("/Users/clairearias-alvarez/Desktop/Masters/Advanced_Bioinformatics/LMS_RNAseq_short-master-2023-final/course/exercises/data/")
+getwd()
+# Read the counts data
+counts_data <- read.csv(file = "exercise1_counts.csv", header = T, row.names = 1)  
+# Read the sample description 
+sample_des <- read.table("exercise1_sample_description.info", sep = "\t", header = TRUE) 
+```
+```{r}
+#Show the first few rows of the read in counts data
+head(counts_data)
+```
+```{r}
+#Show the first few rows of the read in sample description
+head(sample_des)
+```
+#Task 3.9 
+
+Create col_data and check dimensions.
+```{r}
+#Create Col data to create a data frame describing each sample, col data was generated from sample description.
+col_data <- data.frame(sample = sample_des$sample, condition = sample_des$condition, batch = sample_des$batch)
+
+#Show a few roles of col_data generated
+head(col_data)
+```
+```{r}
+#Check dimensions 
+all(colnames(counts_data) == col_data$name)
+```
+
+#Task 3.10 
+
+Construct DESeqDataSet object using count data and sample description
+```{r}
+# Load DeSeq2 library 
+suppressPackageStartupMessages(library(DESeq2))
+# Create DESeq object
+dds <- DESeqDataSetFromMatrix(countData = counts_data, colData = col_data, design =~ condition)
+dds
+```
+#Task 3.11
+
+rlog and VST transformation
+```{r}
+# Regularized log transformation of rlog
+rlog_data <- rlog(dds)
+class(rlog_data)
+
+# Regularized log transformation of VST
+vst_data <- varianceStabilizingTransformation(dds)
+class(vst_data)
+# The class of the transformed data was checked to confirm that they are DESeqTransform objects
+
+```
+#Task 3.12 
+
+A heatmap is drawn from the rlog and VST count data. The assay() function extracts the  matrix of transformed counts from the DESeq2 object. While, order (rowMeans(), decreasing = TRUE) [1:40],finds the genes with the highest expression levels across all samples and selects the top 40. Following this, pheatmap() is then used to visulalisation and clustering.
+```{r}
+#Load pheatmap library
+library("pheatmap")
+#Get rlog_data in count format
+rlog_counts <- assay(rlog_data)
+# Identify the top 40  highly expressed genes in the rlog-transformed dataset
+select_rlog <- order(rowMeans(rlog_counts), decreasing = TRUE)[1:40]
+# Plot a heatmap using the rlog-transformed expression data
+pheatmap(assay(rlog_data)[select_rlog, ], main = "Top 40 Highly Expressed Genes: rlog")
+```
+```{r}
+#Get vst_data in count format
+vst_counts <- assay(vst_data)
+# Identify the top 40  highly expressed genes in the vst-transformed dataset
+select_vst <- order(rowMeans(vst_counts), decreasing = TRUE)[1:40]
+# Plot a heatmap using the vst-transformed expression data
+pheatmap(assay(vst_data)[select_vst, ], main = "Top 40 Highly Expressed Genes: VST")
+```
+#Task 3.13
+
+A heatmap of the sample distance matrix (SDM) was computed from the rlog transformed count data. This was visualised as using pheatmap(), where samples are labelled by condition on rows making it easier to see the  clustering of samples. 
+```{r}
+# Compute SDM using rlog transformed data
+sample_dist <- dist(t(assay(rlog_data)))
+# Transfrom SDM into matrix form
+SDM <- as.matrix(sample_dist)
+
+#Load library for colours
+library("RColorBrewer")
+
+# Add row names to enable a clearer plot
+rownames(SDM) <- rlog_data$condition
+colnames (SDM) <-NULL
+
+# Add colors
+colors <- colorRampPalette(rev(brewer.pal(9, "Purples")))(255)
+
+# Plot heatmap, library("pheatmap") was previously loaded not needed again.
+pheatmap(SDM,
+         clustering_distance_rows = sample_dist,
+         clustering_distance_cols = sample_dist,
+         col = colors,
+         main = "Sample Distance Matrix - count data", 
+         show_rownames = TRUE, 
+         show_colnames = TRUE)
+
+
+```
+
+#Task 3.14
+
+PCA was performed on the rlog transformed data. The first principal component (PC1) explains 70% of variance, while the second principal component (PC2) explains 30% of variance, this is important as together PC1 and PC2 are responsible for 100% of variance.
+```{r}
+# PCA plot on our rlog_data transformed data
+plotPCA(rlog_data, intgroup = "condition")  
+```
+```{r}
+# Store PCA plot data and use returnData = TRUE to extract variance values from the PCA plot
+PCA_rlog <- plotPCA(rlog_data, intgroup = "condition", returnData = TRUE)
+# Extracting the significance percentage values of the first two principle components
+percentVar_rlog <- round(100 * attr(PCA_rlog, "percentVar"))
+# The percentage significance of PC1
+percentVar_rlog[1]
+```
+```{r}
+# The percentage significance of PC2
+percentVar_rlog [2]
+```
+
+
+#Task 3.15
+
+PCA was repeated using VST transformed data. The first principal component (PC1) explains 69% of variance, while the second principal component (PC2) explains 14% of variance, together accounting for 89% of total variance. Comparing rlog and vst methods, it is evident that rlog captures more variance in the first two principal components given their total variance of 100%. This suggests that rlog transformes data only needs PC1 and PC2 to explain all the sample differences within the dataset. However both PCA plots performed on rlog and vst show similar clustering patterns by condition indicating that the dataset structures are similar. 
+```{r}
+# PCA plot on our vst_data transformed data
+plotPCA(vst_data, intgroup = "condition")
+```
+
+```{r}
+# Store PCA plot data and use returnData = TRUE to extract variance values from the PCA plot
+PCA_vst <- plotPCA(vst_data, intgroup = "condition", returnData = TRUE)
+# Extracting the significance percentage values of the first two principle components
+percentVar_vst <- round(100 * attr(PCA_vst, "percentVar"))
+# The percentage significance of PC1
+percentVar_vst[1]
+```
+```{r}
+# The percentage significance of PC2
+percentVar_vst [2]
+```
+
